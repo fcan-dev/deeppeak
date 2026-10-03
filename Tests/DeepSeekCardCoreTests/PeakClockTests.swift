@@ -82,20 +82,6 @@ final class PeakClockTests: XCTestCase {
         XCTAssertEqual(clock.now, stopped)
     }
 
-    // MARK: - Provisional-data reminder
-
-    func testProvisionalReminder() {
-        func note(_ dateString: String) -> String? {
-            PeakClock(now: TestSupport.date(dateString), userURL: TestSupport.absentURL()).provisionalNote
-        }
-        // The announcement is due in the autumn before the provisional year.
-        XCTAssertEqual(note("2026-10-03 12:00:00")?.contains("2027 holidays are provisional"), true,
-                       "note was \(note("2026-10-03 12:00:00") ?? "nil")")
-        XCTAssertEqual(note("2026-10-03 12:00:00")?.contains("due around now"), true)
-        XCTAssertNil(note("2026-06-01 12:00:00"))            // too early to nag
-        XCTAssertEqual(note("2027-03-01 12:00:00")?.contains("2027 holidays are provisional"), true)
-    }
-
     // MARK: - Helpers
 
     private func tempFile(_ contents: String) -> URL {

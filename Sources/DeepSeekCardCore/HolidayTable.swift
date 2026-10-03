@@ -73,10 +73,6 @@ public struct HolidayTable: Equatable, Sendable {
         return HolidayTable(names: names, note: bundledNote ?? noDataNote ?? userNote)
     }
 
-    /// Years whose data is an estimate, pending the State Council's arrangement.
-    /// Remove a year here once its official calendar is in `holidays.json`.
-    public static let provisionalYears: Set<Int> = [2027]
-
     /// `[{"date": "2026-10-01", "name": "National Day"}]` → table, `nil` when malformed.
     public static func parse(_ data: Data) -> [String: String]? {
         guard let entries = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else { return nil }

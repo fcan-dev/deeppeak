@@ -118,10 +118,9 @@ than treated as overrides**, so seeding the file does not freeze it — when
 date without rebuilding; keep long-lived changes in `holidays.json`, which is the
 source of truth.
 
-The card tells you what it is doing: `Using 2 dates from …` when your file is
-contributing something, and a reminder while a year is still an estimate. Both
-files are re-read as soon as their modification time changes, and at each UTC day
-boundary — so saving a file takes effect immediately, no restart.
+The card tells you when your file is contributing something (`Using 2 dates from …`).
+Both files are re-read as soon as their modification time changes, and at each UTC
+day boundary — so saving a file takes effect immediately, no restart.
 
 ### The list
 
@@ -160,11 +159,9 @@ then):
 > too — until the official notice lands, treat those particular days as unknown and
 > the widget as optimistic about them.
 >
-> The widget itself says so: while a year is listed in `HolidayTable.provisionalYears`
-> (`Sources/DeepSeekCardCore/HolidayTable.swift`), the card shows a reminder — from
-> October it starts nudging about the year ahead. When the notice does land:
-> replace the 2027 block in `holidays.json`, remove `2027` from `provisionalYears`,
-> and re-run `scripts/build.sh`.
+> When the notice does land (~Oct–Nov 2026): replace the 2027 block in
+> `holidays.json` and re-run `scripts/build.sh`. The widget deliberately says nothing
+> about this — the caveat lives here.
 
 Dates are the calendar dates DeepSeek's rule cares about (the file stores them as
 ISO `YYYY-MM-DD`).

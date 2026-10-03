@@ -11,7 +11,7 @@ struct CardView: View {
             header
             HairlineDivider()
             content
-            if let note = clock.holidayNote ?? clock.provisionalNote {
+            if let note = clock.holidayNote {
                 Text(note)
                     .font(.caption2)
                     .foregroundStyle(.secondary)

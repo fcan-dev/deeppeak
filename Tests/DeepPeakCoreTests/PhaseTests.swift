@@ -1,5 +1,5 @@
 import XCTest
-@testable import DeepSeekCardCore
+@testable import DeepPeakCore
 
 final class PhaseTests: XCTestCase {
     func testLabels() {

@@ -1,6 +1,6 @@
 import SwiftUI
 import AppKit
-import DeepSeekCardCore
+import DeepPeakCore
 
 struct CardView: View {
     var clock: PeakClock
@@ -33,7 +33,7 @@ struct CardView: View {
                 .fill(clock.phase.displayColor)
                 .frame(width: 8, height: 8)
             VStack(alignment: .leading, spacing: 0) {
-                Text("DeepSeek")
+                Text("DeepPeak")
                     .font(.system(size: 13, weight: .semibold))
                 Text(DisplayFormat.localStamp(clock.now))
                     .font(.caption)

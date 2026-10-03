@@ -1,6 +1,6 @@
 import SwiftUI
 import AppKit
-import DeepSeekCardCore
+import DeepPeakCore
 
 /// Transparent subview inside the status button that observes the cursor and
 /// forwards enter/exit to the controller. `hitTest` returns nil so clicks pass
@@ -63,7 +63,7 @@ final class StatusItemController: NSObject {
 
         button.target = nil
         button.action = nil
-        button.setAccessibilityLabel("DeepSeek pricing status")
+        button.setAccessibilityLabel("DeepPeak status")
 
         let hover = StatusHoverView()
         hover.onEnter = { [weak self] in self?.interaction.insideStatus = true }

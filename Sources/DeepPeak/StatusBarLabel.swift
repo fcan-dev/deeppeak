@@ -1,6 +1,6 @@
 import SwiftUI
 import Observation
-import DeepSeekCardCore
+import DeepPeakCore
 
 /// Shared hover state driving the popover's show/hide.
 @MainActor

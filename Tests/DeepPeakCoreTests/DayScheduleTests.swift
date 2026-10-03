@@ -1,5 +1,5 @@
 import XCTest
-@testable import DeepSeekCardCore
+@testable import DeepPeakCore
 
 final class DayScheduleTests: XCTestCase {
     private let holidays = HolidayTable.load(year: 2026, userURL: TestSupport.absentURL())

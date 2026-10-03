@@ -1,5 +1,5 @@
 import XCTest
-@testable import DeepSeekCardCore
+@testable import DeepPeakCore
 
 final class HolidayTableTests: XCTestCase {
     private let utc = TestSupport.utc

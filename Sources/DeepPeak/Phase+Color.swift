@@ -1,6 +1,6 @@
 import SwiftUI
 import AppKit
-import DeepSeekCardCore
+import DeepPeakCore
 
 extension Phase {
     /// The concrete color for this phase, used by the menu bar label and by the

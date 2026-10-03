@@ -1,7 +1,7 @@
 import Foundation
 
 /// The Chinese public-holiday calendar: the shipped `holidays.json` merged with
-/// the user's optional `~/.config/deepseek-card/holidays.json`.
+/// the user's optional `~/.config/deeppeak/holidays.json`.
 ///
 /// Loading never throws: every failure degrades to data plus a `note` the card
 /// can show. Only official *off days* belong in the files — makeup workdays are

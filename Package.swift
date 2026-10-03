@@ -2,22 +2,22 @@
 import PackageDescription
 
 let package = Package(
-    name: "DeepSeekCard",
+    name: "DeepPeak",
     platforms: [.macOS(.v14)],
     targets: [
         .executableTarget(
-            name: "DeepSeekCard",
-            dependencies: ["DeepSeekCardCore"],
-            path: "Sources/DeepSeekCard"
+            name: "DeepPeak",
+            dependencies: ["DeepPeakCore"],
+            path: "Sources/DeepPeak"
         ),
         .target(
-            name: "DeepSeekCardCore",
-            path: "Sources/DeepSeekCardCore"
+            name: "DeepPeakCore",
+            path: "Sources/DeepPeakCore"
         ),
         .testTarget(
-            name: "DeepSeekCardCoreTests",
-            dependencies: ["DeepSeekCardCore"],
-            path: "Tests/DeepSeekCardCoreTests"
+            name: "DeepPeakCoreTests",
+            dependencies: ["DeepPeakCore"],
+            path: "Tests/DeepPeakCoreTests"
         ),
     ]
 )

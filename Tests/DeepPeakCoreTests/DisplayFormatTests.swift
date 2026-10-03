@@ -1,5 +1,5 @@
 import XCTest
-@testable import DeepSeekCardCore
+@testable import DeepPeakCore
 
 final class DisplayFormatTests: XCTestCase {
     private let plus3 = TimeZone(identifier: "Europe/Istanbul")!   // UTC+3, no DST

@@ -1,4 +1,6 @@
-# DeepSeekCard
+# DeepPeak
+
+[![CI](https://github.com/fcan-dev/deeppeak/actions/workflows/ci.yml/badge.svg)](https://github.com/fcan-dev/deeppeak/actions/workflows/ci.yml)
 
 A native macOS menu bar app that shows whether DeepSeek API pricing is currently
 **PEAK** or **OFFPEAK**, and — on hover — when it switches and why the off-peak
@@ -51,31 +53,39 @@ Notes:
 
 ## Download
 
-There are no prebuilt binaries on this repository yet — build it locally (below).
+Prebuilt **universal** binaries (arm64 + x86_64) are attached to the
+[Releases](https://github.com/fcan-dev/deeppeak/releases) page — download
+`DeepPeak-vX.Y.Z-universal.zip`, unzip, and drag `DeepPeak.app` to Applications.
 
-If you do publish one, note that `scripts/build.sh` produces a **thin arm64** build; for a
-universal binary use:
-
-```sh
-swift build -c release --arch arm64 --arch x86_64
-```
-
-Apps built here are ad-hoc signed (not notarized), so on first launch macOS will show an
+The app is ad-hoc signed (not notarized), so on first launch macOS will show an
 "unidentified developer" warning: right-click the app → **Open** → **Open** to get past it
 (one time only).
 
 ## Build
 
 ```sh
-scripts/build.sh          # produces dist/DeepSeekCard.app
-open dist/DeepSeekCard.app
+scripts/build.sh              # dist/DeepPeak.app, host architecture
+scripts/build.sh --universal  # arm64 + x86_64, what releases ship
+open dist/DeepPeak.app
 ```
 
 For development, run it straight from the source:
 
 ```sh
-swift run DeepSeekCard
+swift run DeepPeak
 ```
+
+## Releasing
+
+CI (`.github/workflows/ci.yml`) runs `swift test` and builds the bundle on every push
+and pull request. Tagging publishes a release:
+
+```sh
+git tag v0.1.0 && git push origin v0.1.0
+```
+
+That stamps the version from the tag into `Info.plist`, builds
+`DeepPeak-v0.1.0-universal.zip`, and attaches it to a GitHub Release.
 
 ## Holiday data
 
@@ -94,7 +104,7 @@ rule is "Mon–Fri minus holidays" — a Saturday declared a workday is still
 off-peak.
 
 `scripts/build.sh` copies the file into
-`DeepSeekCard.app/Contents/Resources/holidays.json`, and that bundled copy is what
+`DeepPeak.app/Contents/Resources/holidays.json`, and that bundled copy is what
 the app reads. Adding a year is a one-file edit plus a rebuild:
 
 ```sh
@@ -107,9 +117,13 @@ State Council publishes it (every October).
 ### Your own additions
 
 The card's **Edit Holidays** button opens
-`~/.config/deepseek-card/holidays.json`. On the first click — or if that file is
+`~/.config/deeppeak/holidays.json`. On the first click — or if that file is
 empty — it is filled with a copy of the shipped list, so you open the whole
 calendar and can edit names, add days, or fix dates in place.
+
+Coming from the pre-rename `DeepSeekCard`? On first launch the old
+`~/.config/deepseek-card/holidays.json` is **moved** here (never overwritten), so
+your edits carry over.
 
 Entries there are merged over the shipped ones: same shape, and where a date's name
 differs from the shipped one, yours wins. **Identical copies are ignored rather

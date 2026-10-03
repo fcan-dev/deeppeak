@@ -53,9 +53,12 @@ public struct HolidayTable: Equatable, Sendable {
         var userNote: String?
         if FileManager.default.fileExists(atPath: userURL.path) {
             if let data = try? Data(contentsOf: userURL), let parsed = parse(data) {
-                if !parsed.isEmpty {
+                // Identical copies are not overrides: a seeded user file must not
+                // shadow later additions to the shipped data.
+                let changed = parsed.filter { names[$0.key] != $0.value }.count
+                if changed > 0 {
                     names.merge(parsed) { _, fromUser in fromUser }
-                    userNote = "Using \(parsed.count) dates from \(userURL.path)."
+                    userNote = "Using \(changed) \(changed == 1 ? "date" : "dates") from \(userURL.path)."
                 }
             } else {
                 userNote = "Ignoring unreadable \(userURL.path)."
@@ -70,6 +73,10 @@ public struct HolidayTable: Equatable, Sendable {
         return HolidayTable(names: names, note: bundledNote ?? noDataNote ?? userNote)
     }
 
+    /// Years whose data is an estimate, pending the State Council's arrangement.
+    /// Remove a year here once its official calendar is in `holidays.json`.
+    public static let provisionalYears: Set<Int> = [2027]
+
     /// `[{"date": "2026-10-01", "name": "National Day"}]` → table, `nil` when malformed.
     public static func parse(_ data: Data) -> [String: String]? {
         guard let entries = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else { return nil }
@@ -83,11 +90,19 @@ public struct HolidayTable: Equatable, Sendable {
 
     // MARK: - Writing
 
-    /// Creates the user file as an empty array when it does not exist yet, so the
-    /// *Edit Holidays* button always has something to open. Never overwrites.
-    public static func ensureUserFile(at url: URL = HolidaySource.userFileURL) {
-        guard !FileManager.default.fileExists(atPath: url.path) else { return }
-        write([:], to: url)
+    /// Creates the user file from the shipped list when it is missing or empty,
+    /// so *Edit Holidays* opens everything visible and editable. Never overwrites
+    /// real content, and never touches a malformed file (the card already says it
+    /// is unreadable — the user gets to fix it rather than lose it).
+    public static func ensureUserFile(at url: URL = HolidaySource.userFileURL,
+                                      bundledURL: URL = HolidaySource.bundledURL) {
+        if let data = try? Data(contentsOf: url) {
+            guard let existing = parse(data) else { return }   // malformed: leave it be
+            guard existing.isEmpty else { return }             // real content: leave it be
+        }
+        let shipped = (try? Data(contentsOf: bundledURL)).flatMap(parse) ?? [:]
+        guard !shipped.isEmpty else { return }
+        write(shipped, to: url)
     }
 
     /// Writes entries in the documented shape, sorted by date.

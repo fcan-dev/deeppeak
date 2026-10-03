@@ -85,19 +85,6 @@ final class HolidayTableTests: XCTestCase {
         XCTAssertEqual(t.note?.contains("No holiday data for 2027"), true, "note was \(t.note ?? "nil")")
     }
 
-    // MARK: - User file creation
-
-    func testEnsureUserFileCreatesEmptyArrayAndNeverClobbers() throws {
-        let url = TestSupport.tempDir().appendingPathComponent("holidays.json")
-        HolidayTable.ensureUserFile(at: url)
-        XCTAssertTrue(FileManager.default.fileExists(atPath: url.path))
-        XCTAssertEqual(HolidayTable.parse(try Data(contentsOf: url)), [:])
-
-        try #"[{"date":"2026-12-25","name":"Extra"}]"#.write(to: url, atomically: true, encoding: .utf8)
-        HolidayTable.ensureUserFile(at: url)
-        XCTAssertEqual(HolidayTable.parse(try Data(contentsOf: url)), ["2026-12-25": "Extra"])
-    }
-
     // MARK: - Change detection
 
     func testStampChangesWithFileContent() throws {
@@ -107,6 +94,65 @@ final class HolidayTableTests: XCTestCase {
         let first = HolidaySource.stamp(bundledURL: url, userURL: absent)
         try #"[{"date":"2026-12-25","name":"Extra"}]"#.write(to: url, atomically: true, encoding: .utf8)
         XCTAssertNotEqual(first, HolidaySource.stamp(bundledURL: url, userURL: absent))
+    }
+
+    // MARK: - Seeding the user file
+
+    func testEnsureUserFileSeedsTheCurrentList() {
+        let url = TestSupport.tempDir().appendingPathComponent("holidays.json")
+        HolidayTable.ensureUserFile(at: url, bundledURL: HolidaySource.bundledURL)
+        let seeded = HolidayTable.parse(try! Data(contentsOf: url))
+        XCTAssertEqual(seeded?.count, 51)                  // the whole list, visible and editable
+        XCTAssertEqual(seeded?["2026-10-01"], "National Day")
+        XCTAssertEqual(seeded?["2027-05-01"], "Labor Day")
+    }
+
+    func testEnsureUserFileLeavesExistingContentAlone() throws {
+        let url = TestSupport.tempDir().appendingPathComponent("holidays.json")
+        try #"[{"date":"2026-12-25","name":"Extra"}]"#.write(to: url, atomically: true, encoding: .utf8)
+        HolidayTable.ensureUserFile(at: url, bundledURL: HolidaySource.bundledURL)
+        XCTAssertEqual(HolidayTable.parse(try Data(contentsOf: url)), ["2026-12-25": "Extra"])
+    }
+
+    func testEnsureUserFileReseedsAnEmptyFile() throws {
+        let url = TestSupport.tempDir().appendingPathComponent("holidays.json")
+        try "[]".write(to: url, atomically: true, encoding: .utf8)
+        HolidayTable.ensureUserFile(at: url, bundledURL: HolidaySource.bundledURL)
+        XCTAssertEqual(HolidayTable.parse(try Data(contentsOf: url))?.count, 51)
+    }
+
+    func testEnsureUserFileLeavesAMalformedFileAlone() throws {
+        let url = TestSupport.tempDir().appendingPathComponent("holidays.json")
+        try "{ oops".write(to: url, atomically: true, encoding: .utf8)
+        HolidayTable.ensureUserFile(at: url, bundledURL: HolidaySource.bundledURL)
+        XCTAssertEqual(try String(contentsOf: url, encoding: .utf8), "{ oops")
+    }
+
+    // MARK: - Copies versus real edits
+
+    func testIdenticalCopiesAreNotOverrides() {
+        let bundled = tempFile(#"[{"date":"2027-10-06","name":"National Day"}]"#)
+        let user = tempFile(#"[{"date":"2027-10-06","name":"National Day"}]"#)   // a seeded copy
+        let t = HolidayTable.load(year: 2027, bundledURL: bundled, userURL: user)
+        XCTAssertEqual(t.names["2027-10-06"], "National Day")
+        XCTAssertNil(t.note)                                   // copies are not reported as overrides
+    }
+
+    func testRepoAdditionsFlowThroughACopiedUserFile() {
+        // Seeded when the repo had only 6 Oct; the repo later gains 7 Oct.
+        let bundled = tempFile(#"[{"date":"2027-10-06","name":"National Day"},{"date":"2027-10-07","name":"National Day"}]"#)
+        let user = tempFile(#"[{"date":"2027-10-06","name":"National Day"}]"#)
+        let t = HolidayTable.load(year: 2027, bundledURL: bundled, userURL: user)
+        XCTAssertEqual(t.names["2027-10-07"], "National Day")
+        XCTAssertNil(t.note)
+    }
+
+    func testRealEditsAreCounted() {
+        let bundled = tempFile(#"[{"date":"2026-10-01","name":"National Day"},{"date":"2026-10-02","name":"National Day"}]"#)
+        let user = tempFile(#"[{"date":"2026-10-01","name":"National Day"},{"date":"2026-12-25","name":"Extra"}]"#)
+        let t = HolidayTable.load(year: 2026, bundledURL: bundled, userURL: user)
+        XCTAssertEqual(t.names["2026-12-25"], "Extra")
+        XCTAssertEqual(t.note?.contains("1 date from"), true, "note was \(t.note ?? "nil")")
     }
 
     // MARK: - Lookup

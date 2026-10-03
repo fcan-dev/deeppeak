@@ -55,6 +55,22 @@ public final class PeakClock {
         holidayTable.note
     }
 
+    /// A reminder while a year's arrangement is still an estimate. The State
+    /// Council publishes next year's calendar in the autumn, so from October the
+    /// widget starts nudging about the year ahead.
+    public var provisionalNote: String? {
+        let calendar = DaySchedule.utcCalendar
+        let year = calendar.component(.year, from: now)
+        if HolidayTable.provisionalYears.contains(year) {
+            return "\(year) holidays are provisional; update holidays.json once the official notice lands."
+        }
+        if calendar.component(.month, from: now) >= 10,
+           HolidayTable.provisionalYears.contains(year + 1) {
+            return "\(year + 1) holidays are provisional — the State Council notice is due around now."
+        }
+        return nil
+    }
+
     // MARK: - Ticking
 
     /// Starts the ticking loop (idempotent).

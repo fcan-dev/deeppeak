@@ -8,7 +8,7 @@ rate applies.
 
 ## How it works
 
-- The menu bar shows `PEAK` or `OFFPEAK`. The **color** says why: amber for peak,
+- The menu bar shows `PEAK` or `OFFPEAK`. The **color** says why: orange for peak,
   green for a plain weekday off-peak, blue for a weekend, purple for a Chinese
   public holiday.
 - Hover over it to reveal the card: a status dot, the current phase, a live
@@ -39,7 +39,7 @@ Notes:
 
 | Color | Meaning |
 |---|---|
-| Amber | Peak |
+| Orange | Peak |
 | Green | Off-peak — weekday |
 | Blue | Off-peak — weekend |
 | Purple | Off-peak — Chinese public holiday |
@@ -77,27 +77,44 @@ For development, run it straight from the source:
 swift run DeepSeekCard
 ```
 
-## Config
+## Holiday data
 
-DeepSeekCard reads `~/.config/deepseek-card/holidays-<year>.json`. It is created
-from the built-in calendar on first run:
+The calendar lives in **`holidays.json` at the repo root** — one flat array
+holding every year:
 
 ```json
 [
-  {
-    "date" : "2026-10-01",
-    "name" : "National Day"
-  }
+  { "date": "2026-10-01", "name": "National Day" },
+  { "date": "2027-02-06", "name": "Spring Festival" }
 ]
 ```
 
-Only the official *off days* belong in this file. The file is re-read on the
-first tick of each new UTC day, so edits are picked up without a restart. Use the
-card's **Edit Holidays** button to open it.
+Only the official *off days* belong there. Makeup workdays stay out, because the
+rule is "Mon–Fri minus holidays" — a Saturday declared a workday is still
+off-peak.
 
-The built-in data currently covers **2026**. Each October, when China's State
-Council publishes the next year's calendar, add `holidays-<year>.json` (and the
-matching entry in `Sources/DeepSeekCardCore/EmbeddedHolidays.swift`).
+`scripts/build.sh` copies the file into
+`DeepSeekCard.app/Contents/Resources/holidays.json`, and that bundled copy is what
+the app reads. Adding a year is a one-file edit plus a rebuild:
+
+```sh
+$EDITOR holidays.json && scripts/build.sh
+```
+
+The data currently covers **2026**; add each new year the same way once China's
+State Council publishes it (every October).
+
+### Your own additions
+
+The card's **Edit Holidays** button opens
+`~/.config/deepseek-card/holidays.json` (created as an empty array on the first
+click). Entries there are merged over the shipped ones — same shape, and when both
+files name the same date yours wins. Use it for a one-off date without rebuilding;
+the shipped file stays the base, so a stale personal file can never hide data you
+added to the repo.
+
+Both files are re-read as soon as their modification time changes, and at each UTC
+day boundary — so saving a file takes effect immediately, no restart.
 
 ## Quit
 

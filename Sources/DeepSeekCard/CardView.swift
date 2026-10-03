@@ -86,11 +86,9 @@ struct CardView: View {
     private var footer: some View {
         HStack {
             MenuItemButton("Edit Holidays") {
-                let year = DaySchedule.utcCalendar.component(.year, from: clock.now)
-                let directory = HolidayTable.defaultDirectory
-                // Create the file first so there is always something to open.
-                _ = HolidayTable.load(year: year, directory: directory)
-                NSWorkspace.shared.open(HolidayTable.fileURL(forYear: year, directory: directory))
+                // Create the user file on first use so there is always something to edit.
+                HolidayTable.ensureUserFile()
+                NSWorkspace.shared.open(HolidaySource.userFileURL)
             }
             Spacer()
             MenuItemButton("Quit") { NSApp.terminate(nil) }

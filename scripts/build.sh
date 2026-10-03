@@ -14,6 +14,9 @@ swift build -c release
 BIN_PATH="$(swift build -c release --show-bin-path)/$APP_NAME"
 cp "$BIN_PATH" "$CONTENTS/MacOS/$APP_NAME"
 cp packaging/Info.plist "$CONTENTS/Info.plist"
+# The holiday calendar ships with the app; SwiftPM bundles carry no resources for
+# a bare executable, so it is copied in by hand.
+cp holidays.json "$CONTENTS/Resources/holidays.json"
 
 # Ad-hoc sign so it launches cleanly locally (no Gatekeeper prompt).
 codesign --force --sign - "$DIST"

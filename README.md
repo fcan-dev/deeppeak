@@ -51,14 +51,18 @@ Notes:
 
 ## Download
 
-Prebuilt universal binaries are on the
-[Releases](https://github.com/fcan-dev/deepseek_offpeak/releases) page — download
-the `DeepSeekCard-x.y.z-universal.zip`, unzip, and drag `DeepSeekCard.app` to
-Applications.
+There are no prebuilt binaries on this repository yet — build it locally (below).
 
-The app is ad-hoc signed (not notarized), so on first launch macOS will show an
-"unidentified developer" warning: right-click the app → **Open** → **Open** to
-get past it (one time only).
+If you do publish one, note that `scripts/build.sh` produces a **thin arm64** build; for a
+universal binary use:
+
+```sh
+swift build -c release --arch arm64 --arch x86_64
+```
+
+Apps built here are ad-hoc signed (not notarized), so on first launch macOS will show an
+"unidentified developer" warning: right-click the app → **Open** → **Open** to get past it
+(one time only).
 
 ## Build
 

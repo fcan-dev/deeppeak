@@ -65,7 +65,7 @@ struct CardView: View {
                 .foregroundStyle(clock.phase.displayColor)
                 .frame(maxWidth: .infinity)
 
-            Text("switches to \(nextLabel) in \(DisplayFormat.countdown(clock.timeRemaining)) · \(DisplayFormat.localTime(clock.nextSwitch))")
+            Text("switches to \(nextLabel) in \(DisplayFormat.countdown(clock.timeRemaining)) · \(DisplayFormat.switchTime(clock.nextSwitch, relativeTo: clock.now))")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)

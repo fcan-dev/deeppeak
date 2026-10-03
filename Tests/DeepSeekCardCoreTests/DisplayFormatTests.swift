@@ -5,6 +5,33 @@ final class DisplayFormatTests: XCTestCase {
     private let plus3 = TimeZone(identifier: "Europe/Istanbul")!   // UTC+3, no DST
     private let posix = Locale(identifier: "en_US_POSIX")
 
+    func testSwitchTimeIsBareWhenItIsLaterToday() {
+        // 03:30 local, switch at 04:00 local — same local day, so no day qualifier.
+        XCTAssertEqual(DisplayFormat.switchTime(TestSupport.date("2026-10-08 01:00:00"),
+                                                relativeTo: TestSupport.date("2026-10-08 00:30:00"),
+                                                timeZone: plus3, locale: posix), "04:00")
+    }
+
+    func testSwitchTimeCarriesTheDayWhenItIsNotToday() {
+        // The live card: 13:04 Saturday, next peak Thursday 04:00 local.
+        XCTAssertEqual(DisplayFormat.switchTime(TestSupport.date("2026-10-08 01:00:00"),
+                                                relativeTo: TestSupport.date("2026-10-03 10:04:00"),
+                                                timeZone: plus3, locale: posix), "Thu 04:00")
+        // Local-midnight boundary: 23:00 Wednesday — the switch is already tomorrow.
+        XCTAssertEqual(DisplayFormat.switchTime(TestSupport.date("2026-10-08 01:00:00"),
+                                                relativeTo: TestSupport.date("2026-10-07 20:00:00"),
+                                                timeZone: plus3, locale: posix), "Thu 04:00")
+    }
+
+    func testSwitchTimeWestOfUTC() {
+        let newYork = TimeZone(identifier: "America/New_York")!
+        // Friday 19:30 local → next peak is 01:00 UTC Monday, which is Sunday
+        // 21:00 locally: only the day qualifier says which day that is.
+        XCTAssertEqual(DisplayFormat.switchTime(TestSupport.date("2026-10-12 01:00:00"),
+                                                relativeTo: TestSupport.date("2026-10-09 23:30:00"),
+                                                timeZone: newYork, locale: posix), "Sun 21:00")
+    }
+
     func testCountdownBuckets() {
         XCTAssertEqual(DisplayFormat.countdown(30), "<1m")
         XCTAssertEqual(DisplayFormat.countdown(59.9), "<1m")

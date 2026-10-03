@@ -12,7 +12,7 @@ rate applies.
   green for a plain weekday off-peak, dark green for a weekend, blue for a Chinese
   public holiday.
 - Hover over it to reveal the card: a status dot, the current phase, a live
-  countdown to the next switch (`switches to PEAK in 4d 18h · 04:00`), a chip
+  countdown to the next switch (`switches to PEAK in 4d 18h · Thu 04:00`), a chip
   naming the reason (`WEEKEND`, `National Day`, …), and the local time of the
   next switch.
 - Everything is computed locally from UTC time plus a static holiday calendar.

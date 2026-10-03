@@ -12,6 +12,34 @@ final class DayScheduleTests: XCTestCase {
         XCTAssertEqual(DaySchedule.utcCalendar.timeZone, TimeZone(identifier: "UTC"))
     }
 
+    func testHolidayIsOffPeakForTheWholeChineseCalendarDay() {
+        // The rule's hours are UTC but the holidays are Chinese dates, so the two
+        // readings could disagree at the edges: a holiday is modelled as the whole
+        // *UTC* day, which begins 08:00 Beijing. This walks every hour of every
+        // holiday in the shipped file on a Beijing clock and requires off-peak
+        // throughout — i.e. the Beijing-midnight-to-08:00 stretch falls in the
+        // previous UTC day's off-peak evening and never inside a peak band.
+        var shanghai = Calendar(identifier: .gregorian)
+        shanghai.timeZone = TimeZone(identifier: "Asia/Shanghai")!
+
+        for day in holidays.names.keys.sorted() {
+            let parts = day.split(separator: "-").compactMap { Int($0) }
+            for hour in 0..<24 {
+                var components = DateComponents()
+                components.year = parts[0]
+                components.month = parts[1]
+                components.day = parts[2]
+                components.hour = hour
+                components.minute = 30
+                guard let instant = shanghai.date(from: components) else {
+                    return XCTFail("could not build \(day) \(hour):30 Beijing")
+                }
+                XCTAssertNotEqual(DaySchedule.phase(at: instant, holidays: holidays), .peak,
+                                  "\(day) at \(hour):30 Beijing is \(instant) UTC")
+            }
+        }
+    }
+
     func testNormalWeekdayBands() {                       // 2026-10-08 is a Thursday
         XCTAssertEqual(phase("2026-10-08 00:30:00"), .offPeak(.weekday))
         XCTAssertEqual(phase("2026-10-08 01:00:00"), .peak)

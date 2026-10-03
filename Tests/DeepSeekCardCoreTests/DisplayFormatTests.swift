@@ -25,6 +25,29 @@ final class DisplayFormatTests: XCTestCase {
         XCTAssertEqual(DisplayFormat.localTime(TestSupport.date("2026-10-08 01:00:00"), timeZone: TestSupport.utc, locale: posix), "01:00")
     }
 
+    func testLocalTimeAcrossDSTTransitions() {
+        let london = TimeZone(identifier: "Europe/London")!
+        // BST (UTC+1), two days before the changeover…
+        XCTAssertEqual(DisplayFormat.localTime(TestSupport.date("2026-10-23 01:00:00"), timeZone: london, locale: posix), "02:00")
+        XCTAssertEqual(DisplayFormat.localStamp(TestSupport.date("2026-06-01 01:00:00"), timeZone: london, locale: posix),
+                       "Mon 01 Jun · 02:00")
+        // …and GMT (UTC+0) the day after, with no hour of drift either side.
+        XCTAssertEqual(DisplayFormat.localStamp(TestSupport.date("2026-10-25 01:00:00"), timeZone: london, locale: posix),
+                       "Sun 25 Oct · 01:00")
+        XCTAssertEqual(DisplayFormat.localStamp(TestSupport.date("2026-10-26 01:00:00"), timeZone: london, locale: posix),
+                       "Mon 26 Oct · 01:00")
+    }
+
+    func testNegativeOffsetsLandOnThePreviousLocalDay() {
+        let newYork = TimeZone(identifier: "America/New_York")!
+        // 01:00 UTC is still the previous evening in the Americas; the stamp has to
+        // say so, and the countdown (an instant difference) is unaffected by zone.
+        XCTAssertEqual(DisplayFormat.localStamp(TestSupport.date("2026-06-01 01:00:00"), timeZone: newYork, locale: posix),
+                       "Sun 31 May · 21:00")
+        XCTAssertEqual(DisplayFormat.localStamp(TestSupport.date("2026-12-01 01:00:00"), timeZone: newYork, locale: posix),
+                       "Mon 30 Nov · 20:00")
+    }
+
     func testLocalStampAndDateRollover() {
         XCTAssertEqual(DisplayFormat.localStamp(TestSupport.date("2026-10-08 01:00:00"), timeZone: plus3, locale: posix),
                        "Thu 08 Oct · 04:00")

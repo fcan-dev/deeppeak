@@ -6,7 +6,9 @@ A native macOS menu bar app that shows whether DeepSeek API pricing is currently
 **PEAK** or **OFFPEAK**, and — on hover — when it switches and why the off-peak
 rate applies.
 
-<!-- screenshot placeholder -->
+<p align="center">
+  <img width="268" src="assets/screenshot.png" alt="The menu bar reads OFFPEAK; the hover card shows the countdown to PEAK, a National Day chip, and Edit Holidays / Quit.">
+</p>
 
 ## How it works
 

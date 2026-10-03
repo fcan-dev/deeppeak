@@ -10,4 +10,12 @@ final class PhaseTests: XCTestCase {
         XCTAssertTrue(Phase.peak.isPeak)
         XCTAssertFalse(Phase.offPeak(.weekend).isPeak)
     }
+
+    func testIndicatorColors() {
+        XCTAssertEqual(Phase.peak.indicatorColor, .red)
+        XCTAssertEqual(Phase.offPeak(.weekday).indicatorColor, .green)
+        XCTAssertEqual(Phase.offPeak(.weekend).indicatorColor, .darkGreen)
+        XCTAssertEqual(Phase.offPeak(.chineseHoliday("National Day")).indicatorColor, .blue)
+        XCTAssertEqual(Phase.offPeak(.chineseHoliday("Anything")).indicatorColor, .blue)
+    }
 }

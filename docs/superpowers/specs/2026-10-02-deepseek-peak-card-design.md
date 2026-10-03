@@ -157,10 +157,10 @@ conversion to local time happens in the UI layer only.
 ## 5. Menu bar
 
 - Text `PEAK` or `OFFPEAK`, ~11pt bold, colored:
-  - peak → **amber**
+  - peak → **red**
   - off-peak, weekday → **green**
-  - off-peak, weekend → **blue**
-  - off-peak, Chinese holiday → **purple**
+  - off-peak, weekend → **dark green**
+  - off-peak, Chinese holiday → **blue**
 - Rendered to `NSImage` via `ImageRenderer` inside `StatusItemController`,
   re-rendered only when `phase` (including reason) changes — same
   signature-based trick as gpu_stat_card. No countdown in the menu bar.

@@ -8,8 +8,8 @@ rate applies.
 
 ## How it works
 
-- The menu bar shows `PEAK` or `OFFPEAK`. The **color** says why: orange for peak,
-  green for a plain weekday off-peak, blue for a weekend, purple for a Chinese
+- The menu bar shows `PEAK` or `OFFPEAK`. The **color** says why: red for peak,
+  green for a plain weekday off-peak, dark green for a weekend, blue for a Chinese
   public holiday.
 - Hover over it to reveal the card: a status dot, the current phase, a live
   countdown to the next switch (`switches to PEAK in 4d 18h · 04:00`), a chip
@@ -39,10 +39,10 @@ Notes:
 
 | Color | Meaning |
 |---|---|
-| Orange | Peak |
+| Red | Peak |
 | Green | Off-peak — weekday |
-| Blue | Off-peak — weekend |
-| Purple | Off-peak — Chinese public holiday |
+| Dark green | Off-peak — weekend |
+| Blue | Off-peak — Chinese public holiday |
 
 ## Requirements
 

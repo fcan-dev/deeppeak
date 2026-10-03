@@ -100,8 +100,12 @@ All segment times are UTC, boundaries inclusive-start / exclusive-end
 (01:00:00 is peak; 03:59:59.999 is peak; 04:00:00 is off-peak).
 
 `DaySchedule.segments(forUTCDate:) -> [Segment]` and
-`DaySchedule.phase(atUTCDate:) -> Phase` (scan today's segments; the next
-phase boundary is always within 24h, so no multi-day scan is needed).
+`DaySchedule.phase(atUTCDate:) -> Phase` (only the current UTC day is needed).
+`DaySchedule.nextSwitch(afterUTCDate:) -> Date` scans forward day by day
+until the **label** changes (peak ↔ offpeak). Reason-only changes — Fri
+23:59 weekday off-peak → Sat 00:00 weekend off-peak, or a holiday starting —
+are not switches, so the returned date can be more than a day out, worst
+case roughly three days across a long weekend.
 
 ### HolidayTable
 
@@ -142,7 +146,8 @@ public final class PeakClock {
     public private(set) var holidayNote: String?
     // derived, recomputed on each tick:
     public var phase: Phase { … }
-    public var nextSwitch: Date { … }   // UTC boundary of the next segment
+    public var nextSwitch: Date { … }   // next peak ↔ offpeak label change (UTC)
+    public var timeRemaining: TimeInterval { … }   // nextSwitch − now
 }
 ```
 

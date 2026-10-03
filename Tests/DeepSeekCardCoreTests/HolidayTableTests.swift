@@ -19,6 +19,17 @@ final class HolidayTableTests: XCTestCase {
         XCTAssertNil(t.note)
     }
 
+    func testShippedFileHasProvisional2027() {
+        let t = HolidayTable.load(year: 2027, userURL: missingURL())
+        XCTAssertEqual(t.names(forYear: 2027).count, 18)
+        XCTAssertEqual(t.names["2027-01-01"], "New Year's Day")
+        XCTAssertEqual(t.names["2027-02-06"], "Spring Festival")
+        XCTAssertEqual(t.names["2027-10-06"], "National Day")
+        XCTAssertNil(t.names["2027-10-07"])   // gap in the provisional window
+        XCTAssertNil(t.names["2027-05-02"])   // gap in the provisional window
+        XCTAssertNil(t.note)
+    }
+
     // MARK: - Parsing
 
     func testParsesFlatEntries() {

@@ -116,6 +116,46 @@ added to the repo.
 Both files are re-read as soon as their modification time changes, and at each UTC
 day boundary — so saving a file takes effect immediately, no restart.
 
+### The list
+
+**2026** — the official arrangement (State Council notice
+[gov.cn/zhengce/zhengceku/202511/content_7047091.htm](https://www.gov.cn/zhengce/zhengceku/202511/content_7047091.htm)),
+33 off-days:
+
+| Holiday | Dates | Days |
+|---|---|---|
+| New Year's Day | 1–3 Jan | 3 |
+| Spring Festival | 15–23 Feb | 9 |
+| Qingming Festival | 4–6 Apr | 3 |
+| Labor Day | 1–5 May | 5 |
+| Dragon Boat Festival | 19–21 Jun | 3 |
+| Mid-Autumn Festival | 25–27 Sep | 3 |
+| National Day | 1–7 Oct | 7 |
+
+**2027** — **provisional**, 18 off-days, taken from
+[timeanddate.com/holidays/china/2027](https://www.timeanddate.com/holidays/china/2027)
+(the State Council publishes its arrangement in the autumn, so re-check this table
+then):
+
+| Holiday | Dates | Days |
+|---|---|---|
+| New Year's Day | 1 Jan | 1 |
+| Spring Festival | 5–11 Feb | 7 |
+| Qingming Festival | 5 Apr | 1 |
+| Labor Day | 1 May | 1 |
+| Dragon Boat Festival | 9 Jun | 1 |
+| Mid-Autumn Festival | 15 Sep | 1 |
+| National Day | 1–6 Oct | 6 |
+
+> ⚠️ The 2027 rows are estimates and the **golden weeks are the weak spot**: China
+> normally stretches Labour Day and National Day, and in 2026 they were 5 and 7 days
+> rather than the 1 and 6 shown here. So 2–5 May and 7 Oct 2027 may well be off-peak
+> too — until the official notice lands, treat those particular days as unknown and
+> the widget as optimistic about them.
+
+Dates are the calendar dates DeepSeek's rule cares about (the file stores them as
+ISO `YYYY-MM-DD`).
+
 ## Quit
 
 Open the card and press **Quit**, or kill the process.

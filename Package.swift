@@ -5,6 +5,11 @@ let package = Package(
     name: "DeepSeekCard",
     platforms: [.macOS(.v14)],
     targets: [
+        .executableTarget(
+            name: "DeepSeekCard",
+            dependencies: ["DeepSeekCardCore"],
+            path: "Sources/DeepSeekCard"
+        ),
         .target(
             name: "DeepSeekCardCore",
             path: "Sources/DeepSeekCardCore"

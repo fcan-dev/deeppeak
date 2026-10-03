@@ -2,7 +2,7 @@ import XCTest
 @testable import DeepSeekCardCore
 
 final class DayScheduleTests: XCTestCase {
-    private let holidays = HolidayTable.embedded(year: 2026)!
+    private let holidays = HolidayTable.load(year: 2026, userURL: TestSupport.absentURL())
 
     private func phase(_ s: String) -> Phase {
         DaySchedule.phase(at: TestSupport.date(s), holidays: holidays)

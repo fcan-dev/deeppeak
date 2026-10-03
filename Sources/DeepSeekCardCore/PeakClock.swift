@@ -3,7 +3,7 @@ import Observation
 
 /// The live peak/off-peak state, recomputed on a timer.
 ///
-/// Holds no UI and touches nothing but the holiday file: the phase is a pure
+/// Holds no UI and touches nothing but the holiday files: the phase is a pure
 /// function of `now` and `holidayTable`. All rule math is UTC.
 @MainActor
 @Observable
@@ -11,21 +11,27 @@ public final class PeakClock {
     public private(set) var now: Date
     public private(set) var holidayTable: HolidayTable
 
-    private let holidayDirectory: URL
+    private let bundledURL: URL
+    private let userURL: URL
     private let nowProvider: @Sendable () -> Date
     private let tickInterval: Duration
+    private var lastStamp: String
     private var lastDayKey: String
     private var task: Task<Void, Never>?
 
     public init(now: Date = Date(),
-                holidayDirectory: URL = HolidayTable.defaultDirectory,
+                bundledURL: URL = HolidaySource.bundledURL,
+                userURL: URL = HolidaySource.userFileURL,
                 nowProvider: @escaping @Sendable () -> Date = { Date() },
                 tickInterval: Duration = .seconds(1)) {
         self.now = now
-        self.holidayDirectory = holidayDirectory
+        self.bundledURL = bundledURL
+        self.userURL = userURL
         self.nowProvider = nowProvider
         self.tickInterval = tickInterval
-        self.holidayTable = HolidayTable.load(year: PeakClock.utcYear(of: now), directory: holidayDirectory)
+        self.holidayTable = HolidayTable.load(year: PeakClock.utcYear(of: now),
+                                              bundledURL: bundledURL, userURL: userURL)
+        self.lastStamp = HolidaySource.stamp(bundledURL: bundledURL, userURL: userURL)
         self.lastDayKey = HolidayTable.key(for: now, calendar: DaySchedule.utcCalendar)
     }
 
@@ -44,7 +50,7 @@ public final class PeakClock {
         nextSwitch.timeIntervalSince(now)
     }
 
-    /// The holiday file's status note, if any (auto-created, invalid, or missing data).
+    /// Something worth telling the user about the holiday data, if anything.
     public var holidayNote: String? {
         holidayTable.note
     }
@@ -68,14 +74,19 @@ public final class PeakClock {
         task = nil
     }
 
-    /// Advances `now` and reloads holiday data when the UTC day changes.
+    /// Advances `now`, and re-reads the holiday files when they changed on disk
+    /// (so an *Edit Holidays* save takes effect immediately) or when the UTC day
+    /// changed (which also refreshes the per-year note).
     public func tick() {
         now = nowProvider()
 
         let dayKey = HolidayTable.key(for: now, calendar: DaySchedule.utcCalendar)
-        guard dayKey != lastDayKey else { return }
+        let stamp = HolidaySource.stamp(bundledURL: bundledURL, userURL: userURL)
+        guard stamp != lastStamp || dayKey != lastDayKey else { return }
+        lastStamp = stamp
         lastDayKey = dayKey
-        holidayTable = HolidayTable.load(year: PeakClock.utcYear(of: now), directory: holidayDirectory)
+        holidayTable = HolidayTable.load(year: PeakClock.utcYear(of: now),
+                                         bundledURL: bundledURL, userURL: userURL)
     }
 
     private static func utcYear(of date: Date) -> Int {

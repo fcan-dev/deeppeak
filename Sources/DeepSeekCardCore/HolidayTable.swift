@@ -1,38 +1,31 @@
 import Foundation
 
-/// The Chinese public-holiday calendar for one year, loaded from
-/// `~/.config/deepseek-card/holidays-<year>.json` with the built-in table as a
-/// fallback. Loading never throws: every failure degrades to data plus a `note`
-/// the card can show.
+/// The Chinese public-holiday calendar: the shipped `holidays.json` merged with
+/// the user's optional `~/.config/deepseek-card/holidays.json`.
+///
+/// Loading never throws: every failure degrades to data plus a `note` the card
+/// can show. Only official *off days* belong in the files — makeup workdays are
+/// deliberately absent, because DeepSeek's rule is "Mon–Fri excluding holidays",
+/// so a Saturday declared a workday is still off-peak.
 public struct HolidayTable: Equatable, Sendable {
-    public let year: Int
     /// Keys are `"yyyy-MM-dd"`, interpreted in the calendar used for lookup.
     public let names: [String: String]
-    /// Non-nil when the file was auto-created, was invalid, or holds no data.
+    /// Non-nil when something about the data needs saying.
     public let note: String?
 
-    public init(year: Int, names: [String: String], note: String? = nil) {
-        self.year = year
+    public init(names: [String: String], note: String? = nil) {
         self.names = names
         self.note = note
     }
 
-    public static let defaultDirectory: URL =
-        FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".config/deepseek-card")
-
-    public static func fileURL(forYear year: Int, directory: URL = defaultDirectory) -> URL {
-        directory.appendingPathComponent("holidays-\(year).json")
-    }
-
-    /// The built-in table for `year`, or `nil` when none ships yet.
-    public static func embedded(year: Int) -> HolidayTable? {
-        guard let names = EmbeddedHolidays.names(forYear: year) else { return nil }
-        return HolidayTable(year: year, names: names)
-    }
-
     public func name(on date: Date, calendar: Calendar) -> String? {
         names[HolidayTable.key(for: date, calendar: calendar)]
+    }
+
+    /// The entries for one year, keyed by `"yyyy-MM-dd"`.
+    public func names(forYear year: Int) -> [String: String] {
+        let prefix = String(format: "%04d-", year)
+        return names.filter { $0.key.hasPrefix(prefix) }
     }
 
     /// `"yyyy-MM-dd"` for `date` in `calendar`'s time zone.
@@ -43,35 +36,42 @@ public struct HolidayTable: Equatable, Sendable {
 
     // MARK: - Loading
 
-    public static func load(year: Int, directory: URL = defaultDirectory) -> HolidayTable {
-        let url = fileURL(forYear: year, directory: directory)
-        let embeddedNames = EmbeddedHolidays.names(forYear: year)
-
-        guard FileManager.default.fileExists(atPath: url.path) else {
-            let names = embeddedNames ?? [:]
-            write(names: names, year: year, to: url)
-            return HolidayTable(year: year, names: names, note: noDataNote(year: year, url: url, hasNames: !names.isEmpty, created: true))
+    /// Reads both files, merges them (user entries win), and summarises what
+    /// happened in `note`. `year` only affects the note: a year with no data at
+    /// all is worth telling the user about.
+    public static func load(year: Int,
+                            bundledURL: URL = HolidaySource.bundledURL,
+                            userURL: URL = HolidaySource.userFileURL) -> HolidayTable {
+        var bundledNote: String?
+        var names: [String: String] = [:]
+        if let data = try? Data(contentsOf: bundledURL), let parsed = parse(data) {
+            names = parsed
+        } else {
+            bundledNote = "Built-in holiday data at \(bundledURL.path) could not be read."
         }
 
-        guard let data = try? Data(contentsOf: url), let parsed = parse(data) else {
-            let names = embeddedNames ?? [:]
-            let note = names.isEmpty
-                ? "Holiday file at \(url.path) is invalid; using no holidays."
-                : "Holiday file at \(url.path) is invalid; using built-in data."
-            return HolidayTable(year: year, names: names, note: note)
+        var userNote: String?
+        if FileManager.default.fileExists(atPath: userURL.path) {
+            if let data = try? Data(contentsOf: userURL), let parsed = parse(data) {
+                if !parsed.isEmpty {
+                    names.merge(parsed) { _, fromUser in fromUser }
+                    userNote = "Using \(parsed.count) dates from \(userURL.path)."
+                }
+            } else {
+                userNote = "Ignoring unreadable \(userURL.path)."
+            }
         }
 
-        let note = parsed.isEmpty ? noDataNote(year: year, url: url, hasNames: false, created: false) : nil
-        return HolidayTable(year: year, names: parsed, note: note)
-    }
+        let table = HolidayTable(names: names)
+        let noDataNote = table.names(forYear: year).isEmpty
+            ? "No holiday data for \(year); add it to holidays.json."
+            : nil
 
-    private static func noDataNote(year: Int, url: URL, hasNames: Bool, created: Bool) -> String {
-        guard hasNames, created else { return "No holiday data for \(year); add \(url.path)." }
-        return "Created default holiday data at \(url.path)."
+        return HolidayTable(names: names, note: bundledNote ?? noDataNote ?? userNote)
     }
 
     /// `[{"date": "2026-10-01", "name": "National Day"}]` → table, `nil` when malformed.
-    private static func parse(_ data: Data) -> [String: String]? {
+    public static func parse(_ data: Data) -> [String: String]? {
         guard let entries = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] else { return nil }
         var names: [String: String] = [:]
         for entry in entries {
@@ -81,14 +81,23 @@ public struct HolidayTable: Equatable, Sendable {
         return names
     }
 
-    /// Writes the file in the documented shape, sorted by date.
-    public static func write(names: [String: String], year: Int, to url: URL) {
-        let directory = url.deletingLastPathComponent()
-        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        let entries: [[String: String]] = names.keys.sorted().map {
-            ["date": $0, "name": names[$0] ?? ""]
+    // MARK: - Writing
+
+    /// Creates the user file as an empty array when it does not exist yet, so the
+    /// *Edit Holidays* button always has something to open. Never overwrites.
+    public static func ensureUserFile(at url: URL = HolidaySource.userFileURL) {
+        guard !FileManager.default.fileExists(atPath: url.path) else { return }
+        write([:], to: url)
+    }
+
+    /// Writes entries in the documented shape, sorted by date.
+    public static func write(_ entries: [String: String], to url: URL) {
+        try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(),
+                                                 withIntermediateDirectories: true)
+        let objects: [[String: String]] = entries.keys.sorted().map { key in
+            ["date": key, "name": entries[key] ?? ""]
         }
-        guard let data = try? JSONSerialization.data(withJSONObject: entries,
+        guard let data = try? JSONSerialization.data(withJSONObject: objects,
                                                      options: [.prettyPrinted, .sortedKeys]) else { return }
         try? data.write(to: url)
     }

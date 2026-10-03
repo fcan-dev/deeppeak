@@ -19,4 +19,9 @@ enum TestSupport {
         try! FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
         return url
     }
+
+    /// A path guaranteed not to exist, for "no user override" cases.
+    static func absentURL() -> URL {
+        tempDir().appendingPathComponent("absent.json")
+    }
 }
